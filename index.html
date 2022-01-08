@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Card Game</title>
+    <style>
+     
+    </style>
+  </head>
+  <body>
+    <h2 id="errorslot"></h2>
+    <h1 id="player1">Player 1 is not ready</h1>
+    <h1 id="player2">Player 2 is not ready</h1>
+    <button onclick="pressedReady()">Ready</button>
+    <div id="playerready"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let usrname = prompt('What is your username?')
+        var socket = io();
+        let error = document.getElementById("errorslot");
+
+        let player1 = document.getElementById("player1");
+        let slot1filled = false;
+
+        let player2 = document.getElementById("player2");
+        let slot2filled = false;
+
+        
+        //Checks for onclick events and transmits them to the server
+        player1.onclick = function(reserveSlot1) {
+          //Checks if slot is already filled. This will prevent a client from reserving a slot multiple times.
+          //This currently only works client-side and a different player can take both slots.
+          if (!slot1filled) {
+          socket.emit('slot1reserved', usrname, "reserved slot 1");
+          slot1filled = true;
+          }
+          
+          else {
+          error.innerHTML = "Slot 1 is already filled!"
+          }
+        }
+
+        player2.onclick = function(reserveSlot2) {
+          if (!slot2filled) {
+          socket.emit('slot2reserved', usrname, "reserved slot 2");
+          slot2filled = true;
+          }
+          
+          else {
+          error.innerHTML = "Slot 2 is already filled!"
+          }
+        }
+        
+
+        socket.emit('usrname', usrname);
+
+        function pressedReady() {
+          socket.emit('pressedready', usrname);
+        }
+      
+        socket.on('userconnected', function(test) {
+          console.log(test, "received ready msg");
+        })
+
+
+        //Listens for players reserving slots. Imports the username of the clicked player and sets innerHTML.
+        socket.on('slot1reserved', function(usrname) {
+          player1.innerHTML = usrname + " has selected player 1";
+        })
+
+        socket.on('slot2reserved', function(usrname) {
+          player2.innerHTML = usrname + " has selected player 2";
+        })
+    </script>
+  </body>
+</html>
